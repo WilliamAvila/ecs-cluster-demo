@@ -109,17 +109,17 @@ resource "aws_ecs_service" "my_service" {
   }
   network_configuration {
     subnets          = ["${aws_default_subnet.default_subnet_a.id}", "${aws_default_subnet.default_subnet_b.id}"]
-    assign_public_ip = false
+    assign_public_ip = true
     security_groups  = ["${aws_security_group.service_security_group.id}"]
 
   }
 }
 resource "aws_security_group" "service_security_group" {
-  name   = "${var.app_name}-${var.env}-service-sg"
+  name = "${var.app_name}-${var.env}-service-sg"
   ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
 
     security_groups = ["${aws_security_group.load_balancer_security_group.id}"]
   }
@@ -144,10 +144,16 @@ resource "aws_alb" "application_load_balancer" {
 }
 
 resource "aws_security_group" "load_balancer_security_group" {
-  name          = "${var.app_name}-${var.env}-LB-sg"
+  name = "${var.app_name}-${var.env}-LB-sg"
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
